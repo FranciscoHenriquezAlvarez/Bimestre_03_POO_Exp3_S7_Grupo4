@@ -3,7 +3,7 @@ package logica;
 import persistencia.ControladoraPersistencia;
 
 
- // ⚠️ Código en desuso (no se ocupa en la versión con MVC y servicios JPA).
+ // ⚠️ Código en desuso (no se ocupa en la versión actual).
  // Se mantiene solo como referencia de la primera etapa del proyecto.
  
 @Deprecated

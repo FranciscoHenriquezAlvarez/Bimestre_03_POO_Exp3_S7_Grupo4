@@ -44,4 +44,8 @@ public class CarteleraController {  // Actualización
         c.setGenero(genero);
         service.actualizar(c);
     }
+    
+    public List<Cartelera> onBuscarFiltrado(Cartelera.Genero genero, Integer anioDesde, Integer anioHasta) throws Exception { // Actualizacion
+        return service.listarFiltrado(genero, anioDesde, anioHasta);
+    }
 }

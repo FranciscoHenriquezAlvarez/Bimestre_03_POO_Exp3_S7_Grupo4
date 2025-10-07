@@ -1,8 +1,8 @@
 package igu;
 
+import igu.util.FormUtils;
 import java.awt.Image;
 import javax.swing.ImageIcon;
-import logica.Cartelera;
 import javax.swing.JOptionPane;
 //import logica.Controladora; // Actualización
 
@@ -10,6 +10,7 @@ import javax.swing.JOptionPane;
 import logica.controlador.CarteleraController; // Actualización
 import logica.ICarteleraService; // Actualización
 import logica.JpaCarteleraService;
+import logica.validacion.exceptions.ValidationException;
 
 public class AgregarPelicula extends javax.swing.JFrame {
 
@@ -17,37 +18,50 @@ public class AgregarPelicula extends javax.swing.JFrame {
     private final CarteleraController controller; // Actualización
 
     // ----- Constructor (inyección) -----
+    /**
+     * Nueva versión con inyección de dependencias. Sustituye al constructor
+     * @Deprecated para mayor cohesión.
+     */
     public AgregarPelicula(CarteleraController controller) { // Actualización
+        if (controller == null) throw new IllegalArgumentException("controller nulo");
         this.controller = controller; // Actualización
         initComponents();
 
         // --- COMIENZO DEL CÓDIGO AÑADIDO ---
         // 1. Carga la imagen de 128x128 píxeles
-        // Asegúrate de que la imagen 'logoCineMagenta128x128.png' esté en tu proyecto
-        // (por ejemplo, en la carpeta src/main/resources o en la raíz del proyecto)
         var url = getClass().getResource("/logoCineMagenta128x128.png");
+
+        // 2. Escala la imagen para que encaje en el JLabel
         if (url != null) {
             ImageIcon originalIcon = new ImageIcon(url);
 
-            // 2. Escala la imagen para que encaje en el JLabel
-            // Aquí se usa el tamaño del JLabel para el escalado
-            Image scaledImage = originalIcon.getImage().getScaledInstance(jLabel7.getWidth(), jLabel7.getHeight(), Image.SCALE_SMOOTH);
-            ImageIcon scaledIcon = new ImageIcon(scaledImage);
+            // Aquí se define el tamaño
+            Image scaledImage = originalIcon.getImage().getScaledInstance(128, 128, Image.SCALE_SMOOTH);
 
             // 3. Establece la imagen en el JLabel
-            jLabel7.setIcon(scaledIcon);
+            jLabel7.setIcon(new ImageIcon(scaledImage));
         } else {
             System.err.println("⚠ No se encontró el recurso: /logoCineMagenta128x128.png");
         }
+        
+        setLocationRelativeTo(null);
+        
         // --- FIN DEL CÓDIGO AÑADIDO ---
     } // Actualización
 
     // ----- Constructor sin parámetros que usa un controller por defecto -----
-    public AgregarPelicula() { // Actualización
+    @Deprecated
+    public AgregarPelicula() {
         this(crearControllerPorDefecto());
     }
 
     // ----- Factory del controller por defecto: JPA principal + Decorators -----
+    /**
+     * @deprecated Solo para compatibilidad con versiones anteriores. Usar
+     * siempre AgregarPelicula#AgregarPelicula(CarteleraController) con
+     * inyección de dependencias desde el main.
+     */
+    @Deprecated
     private static CarteleraController crearControllerPorDefecto() {
         persistencia.ControladoraPersistencia repo = new persistencia.ControladoraPersistencia();
         ICarteleraService jpa = new JpaCarteleraService(repo);
@@ -80,7 +94,6 @@ public class AgregarPelicula extends javax.swing.JFrame {
         txtDuracion = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
-        jLayeredPane1 = new javax.swing.JLayeredPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -147,17 +160,6 @@ public class AgregarPelicula extends javax.swing.JFrame {
 
         jLabel7.setText("jLabel7");
 
-        javax.swing.GroupLayout jLayeredPane1Layout = new javax.swing.GroupLayout(jLayeredPane1);
-        jLayeredPane1.setLayout(jLayeredPane1Layout);
-        jLayeredPane1Layout.setHorizontalGroup(
-            jLayeredPane1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 100, Short.MAX_VALUE)
-        );
-        jLayeredPane1Layout.setVerticalGroup(
-            jLayeredPane1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 100, Short.MAX_VALUE)
-        );
-
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -184,13 +186,8 @@ public class AgregarPelicula extends javax.swing.JFrame {
                             .addComponent(txtDuracion)
                             .addComponent(cmbGenero, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 413, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(38, 38, 38)
-                        .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLayeredPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(38, 38, 38)
+                .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(50, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -200,8 +197,7 @@ public class AgregarPelicula extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(84, 84, 84)
-                        .addComponent(jLayeredPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(184, 184, 184))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(47, 47, 47)
@@ -255,72 +251,26 @@ public class AgregarPelicula extends javax.swing.JFrame {
     }//GEN-LAST:event_btnLimpiarActionPerformed
 
     private void btnGrabarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGrabarActionPerformed
-        /*Usaré metodos auxiliares para guardar los datos*/
 
         try {
-            if (txtNombre.getText().isBlank() || txtDirector.getText().isBlank()
-                    || txtAnio.getText().isBlank() || txtDuracion.getText().isBlank()
-                    || "-".equals(cmbGenero.getSelectedItem())) {
-                JOptionPane.showMessageDialog(this, "Todos los campos son obligatorios.",
-                        "Validación", JOptionPane.ERROR_MESSAGE);
-                return;
+            FormUtils.PeliculaInput in = FormUtils.leerYValidarCampos(
+                    this, txtNombre, txtDirector, txtAnio, txtDuracion, cmbGenero
+            );
+            if (in == null) {
+                return; // ya mostró el mensaje
             }
-            String nombrePelicula = txtNombre.getText();
-            String nombreDirector = txtDirector.getText();
-            int anioPelicula = Integer.parseInt(txtAnio.getText());
-            int duracionPelicula = Integer.parseInt(txtDuracion.getText());
+            controller.onGuardarPelicula(in.titulo, in.director, in.anio, in.duracion, in.genero);
 
-            // Obtener el género como enum con manejo mejorado
-            String generoStr = (String) cmbGenero.getSelectedItem();
+            JOptionPane.showMessageDialog(this, "Película Guardada Correctamente",
+                    "Guardado Exitoso", JOptionPane.INFORMATION_MESSAGE);
 
-            // Verificar que se haya seleccionado un género válido
-            if ("-".equals(generoStr)) {
-                JOptionPane.showMessageDialog(this, "Debe seleccionar un género válido",
-                        "Error de selección", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // Mapear los valores del ComboBox a los valores del Enum
-            Cartelera.Genero generoPelicula;
-            switch (generoStr) {
-                case "Comedia":
-                    generoPelicula = Cartelera.Genero.COMEDIA;
-                    break;
-                case "Drama":
-                    generoPelicula = Cartelera.Genero.DRAMA;
-                    break;
-                case "Acción":
-                    generoPelicula = Cartelera.Genero.ACCION;
-                    break;
-                case "Terror":
-                    generoPelicula = Cartelera.Genero.TERROR;
-                    break;
-                case "Ciencia Ficción":
-                    generoPelicula = Cartelera.Genero.CIENCIA_FICCION;
-                    break;
-                case "Aventura":
-                    generoPelicula = Cartelera.Genero.AVENTURA;
-                    break;
-                default:
-                    throw new IllegalArgumentException("Género no válido: " + generoStr);
-            }
-
-            //controladora.guardar(nombrePelicula, nombreDirector, anioPelicula, duracionPelicula, generoPelicula);
-            controller.onGuardarPelicula(nombrePelicula, nombreDirector, anioPelicula, duracionPelicula, generoPelicula); // Actualización
-
-            JOptionPane.showMessageDialog(this, "Película Guardada Correctamente ",
-                    "Guardado Exitoso", JOptionPane.INFORMATION_MESSAGE); // Actualización
-
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Año y Duración deben ser números válidos",
-                    "Error de formato", JOptionPane.ERROR_MESSAGE);
+        } catch (ValidationException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Validación", JOptionPane.ERROR_MESSAGE);
         } catch (IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(this, "Género no válido: " + e.getMessage(),
-                    "Error de selección", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception e) { // Actualización
-            JOptionPane.showMessageDialog(this, "Error al guardar: \n" + e.getMessage(),
-                    "Persistencia", JOptionPane.ERROR_MESSAGE); // Actualización
-        } // Actualización
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Validación", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al guardar: \n" + e.getMessage(), "Persistencia", JOptionPane.ERROR_MESSAGE);
+        }
 
     }//GEN-LAST:event_btnGrabarActionPerformed
 
@@ -359,7 +309,6 @@ public class AgregarPelicula extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JLayeredPane jLayeredPane1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JTextField txtAnio;
     private javax.swing.JTextField txtDirector;

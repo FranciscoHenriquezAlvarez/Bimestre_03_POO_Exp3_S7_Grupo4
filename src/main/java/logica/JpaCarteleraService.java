@@ -35,4 +35,9 @@ public class JpaCarteleraService implements ICarteleraService {  // Actualizaci√
     public List<Cartelera> listar() throws Exception {
         return repo.listar();
     }
+    
+    @Override // Actualizacion
+    public List<Cartelera> listarFiltrado(Cartelera.Genero genero, Integer anioDesde, Integer anioHasta) throws Exception {
+        return repo.listarFiltrado(genero, anioDesde, anioHasta);
+    }
 }

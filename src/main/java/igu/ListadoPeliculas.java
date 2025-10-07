@@ -1,7 +1,12 @@
 package igu;
 
+import igu.util.CsvExporter;
+import static igu.util.FormUtils.formatearGenero;
+import java.util.ArrayList;
 import javax.swing.table.DefaultTableModel;
 import java.util.List;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import logica.Cartelera;
 import logica.controlador.CarteleraController;
@@ -14,10 +19,25 @@ public class ListadoPeliculas extends javax.swing.JFrame {
 
     private final CarteleraController controller;
 
+    private List<Cartelera> cacheListaActual = new ArrayList<>(); // Actualizacion
+
     public ListadoPeliculas(CarteleraController controller) {
+        if (controller == null) {
+            throw new IllegalArgumentException("controller nulo");
+        }
         this.controller = controller;
         initComponents();
+
+        igu.util.ValorPorDefecto.aplicar(txtDesde, "Desde (año)");
+        igu.util.ValorPorDefecto.aplicar(txtHasta, "Hasta (año)");
+
+        // Centrar texto en el combo
+        ((javax.swing.JLabel) cmbFiltroGenero.getRenderer()).setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+
         setLocationRelativeTo(null);
+
+        //attachPlaceholder(txtDesde, "Desde (año)");
+        //attachPlaceholder(txtHasta, "Hasta (año)"); 
         cargarTabla();
     }
 
@@ -37,13 +57,14 @@ public class ListadoPeliculas extends javax.swing.JFrame {
         tablaPeliculas = new javax.swing.JTable();
         btnEliminar = new javax.swing.JButton();
         btnEditar = new javax.swing.JButton();
+        btnExportarCsv = new javax.swing.JButton();
+        cmbFiltroGenero = new javax.swing.JComboBox<>();
+        txtDesde = new javax.swing.JTextField();
+        txtHasta = new javax.swing.JTextField();
+        btnBuscar = new javax.swing.JButton();
+        btnLimpiarFiltros = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowOpened(java.awt.event.WindowEvent evt) {
-                formWindowOpened(evt);
-            }
-        });
 
         jPanel1.setBackground(new java.awt.Color(120, 120, 121));
         jPanel1.setForeground(new java.awt.Color(255, 255, 255));
@@ -64,13 +85,16 @@ public class ListadoPeliculas extends javax.swing.JFrame {
 
             }
         ));
+        tablaPeliculas.setSelectionMode(javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         jScrollPane1.setViewportView(tablaPeliculas);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 599, Short.MAX_VALUE)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 665, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -91,6 +115,49 @@ public class ListadoPeliculas extends javax.swing.JFrame {
             }
         });
 
+        btnExportarCsv.setText("Exportar CSV");
+        btnExportarCsv.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnExportarCsvActionPerformed(evt);
+            }
+        });
+
+        cmbFiltroGenero.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "-", "Comedia", "Drama", "Acción", "Terror", "Ciencia Ficción", "Aventura" }));
+        cmbFiltroGenero.setName(""); // NOI18N
+        cmbFiltroGenero.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmbFiltroGeneroActionPerformed(evt);
+            }
+        });
+
+        txtDesde.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        txtDesde.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtDesdeActionPerformed(evt);
+            }
+        });
+
+        txtHasta.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        txtHasta.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtHastaActionPerformed(evt);
+            }
+        });
+
+        btnBuscar.setText("Buscar");
+        btnBuscar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBuscarActionPerformed(evt);
+            }
+        });
+
+        btnLimpiarFiltros.setText("Limpiar filtros");
+        btnLimpiarFiltros.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLimpiarFiltrosActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -98,31 +165,51 @@ public class ListadoPeliculas extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(227, 227, 227)
-                        .addComponent(jLabel1))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(34, 34, 34)
                         .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(btnEliminar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnEditar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                .addContainerGap(55, Short.MAX_VALUE))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(20, 20, 20)
+                                .addComponent(btnExportarCsv, javax.swing.GroupLayout.PREFERRED_SIZE, 114, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(18, 18, 18)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(btnEditar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(btnEliminar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(cmbFiltroGenero, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(txtDesde)
+                                    .addComponent(txtHasta)
+                                    .addComponent(btnBuscar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(btnLimpiarFiltros, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(229, 229, 229)
+                        .addComponent(jLabel1)))
+                .addContainerGap(20, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(35, 35, 35)
                 .addComponent(jLabel1)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(18, 18, 18)
-                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(42, 42, 42)
+                        .addComponent(cmbFiltroGenero, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(txtDesde, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(txtHasta, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnBuscar)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnLimpiarFiltros)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnEditar)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btnEliminar)
-                        .addGap(40, 40, 40)
-                        .addComponent(btnEditar)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnExportarCsv)))
                 .addContainerGap(50, Short.MAX_VALUE))
         );
 
@@ -140,41 +227,72 @@ public class ListadoPeliculas extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
-        /*Aquí llamo un evento que le digo, al abrir la ventana que me cargue
-        la tabla de mi base de datos... debo crear el metodo crear tabla,
-        de caso contrario me va a dar un error*/
-
-        // cargarTabla();
-
-    }//GEN-LAST:event_formWindowOpened
-
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
 
-        int row = tablaPeliculas.getSelectedRow();
-        if (row >= 0) {
-            int id = Integer.parseInt(String.valueOf(tablaPeliculas.getValueAt(row, 0)));
-            int opt = JOptionPane.showConfirmDialog(
+        // Filas seleccionadas en la VISTA (pueden estar ordenadas)
+        int[] viewRows = tablaPeliculas.getSelectedRows();
+
+        if (viewRows == null || viewRows.length == 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Seleccione una o más películas.",
+                    "Eliminar",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Pasar a índices del MODELO y recolectar IDs (columna 0)
+        java.util.List<Integer> ids = new java.util.ArrayList<>(viewRows.length);
+        for (int vr : viewRows) {
+            int mr = tablaPeliculas.convertRowIndexToModel(vr);
+            Object val = tablaPeliculas.getModel().getValueAt(mr, 0);
+            ids.add(Integer.parseInt(String.valueOf(val)));
+        }
+
+        // Confirmación
+        int opt = JOptionPane.showConfirmDialog(
                 this,
-                "¿Eliminar la película ID " + id + "?",
+                (ids.size() == 1)
+                ? ("¿Eliminar la película ID " + ids.get(0) + "?")
+                : ("¿Eliminar " + ids.size() + " películas seleccionadas?\nIDs: " + ids),
                 "Confirmar eliminación",
                 JOptionPane.YES_NO_OPTION
-            );
-            if (opt == JOptionPane.YES_OPTION) {
-                try {
-                    controller.onEliminarPelicula(id);
-                    JOptionPane.showMessageDialog(this, "Se eliminó correctamente.", "Eliminado", JOptionPane.INFORMATION_MESSAGE);
-                    cargarTabla();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(this, "Error al eliminar: " + ex.getMessage(),
-                            "Eliminado", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, "Seleccione una película.", "Eliminar", JOptionPane.WARNING_MESSAGE);
+        );
+        if (opt != JOptionPane.YES_OPTION) {
+            return;
         }
-        
+
+        // Eliminar una por una con conteo de resultados
+        int ok = 0, fail = 0;
+        StringBuilder errores = new StringBuilder();
+
+        for (int id : ids) {
+            try {
+                controller.onEliminarPelicula(id);
+                ok++;
+            } catch (Exception ex) {
+                fail++;
+                errores.append("ID ").append(id).append(": ")
+                        .append(ex.getMessage()).append("\n");
+            }
+        }
+
+        // Feedback
+        if (fail == 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Se eliminó correctamente " + ok + " registro(s).",
+                    "Eliminado",
+                    JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(this,
+                    "Eliminadas: " + ok + "\nFallidas: " + fail + "\n\n" + errores,
+                    "Eliminar",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+
+        // Refrescar y limpiar selección
+        cargarTabla();
+        tablaPeliculas.clearSelection();
+
     }//GEN-LAST:event_btnEliminarActionPerformed
 
     private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
@@ -191,68 +309,162 @@ public class ListadoPeliculas extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnEditarActionPerformed
 
+    private void btnExportarCsvActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportarCsvActionPerformed
+
+        try {  // Actualizacion
+            if (cacheListaActual == null || cacheListaActual.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No hay datos para exportar.",
+                        "Exportar", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Guardar CSV");
+            chooser.setSelectedFile(new java.io.File("cartelera.csv"));
+
+            if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                java.io.File destino = chooser.getSelectedFile();
+                if (!destino.getName().toLowerCase().endsWith(".csv")) {
+                    destino = new java.io.File(destino.getParentFile(), destino.getName() + ".csv");
+                }
+
+                CsvExporter.exportarCartelera(destino, cacheListaActual);
+
+                JOptionPane.showMessageDialog(this, "Exportado a:\n" + destino.getAbsolutePath(),
+                        "Exportar", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al exportar: " + ex.getMessage(),
+                    "Exportar", JOptionPane.ERROR_MESSAGE);
+        }
+
+    }//GEN-LAST:event_btnExportarCsvActionPerformed
+
+    private void cmbFiltroGeneroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbFiltroGeneroActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_cmbFiltroGeneroActionPerformed
+
+    private void txtDesdeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtDesdeActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtDesdeActionPerformed
+
+    private void txtHastaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtHastaActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtHastaActionPerformed
+
+    private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
+        try {
+            Cartelera.Genero genero = generoDesdeCombo(cmbFiltroGenero);
+            Integer desde = parseEnteroNullable(txtDesde.getText());
+            Integer hasta = parseEnteroNullable(txtHasta.getText());
+
+            List<Cartelera> filtradas = controller.onBuscarFiltrado(genero, desde, hasta);
+            actualizarTabla(filtradas);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al filtrar: " + e.getMessage(),
+                    "Buscar", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnBuscarActionPerformed
+
+    private void btnLimpiarFiltrosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLimpiarFiltrosActionPerformed
+        cmbFiltroGenero.setSelectedIndex(0);
+        txtDesde.setText("");
+        txtHasta.setText("");
+
+        igu.util.ValorPorDefecto.reset(txtDesde);
+        igu.util.ValorPorDefecto.reset(txtHasta);
+
+        cargarTabla(); // vuelve a cargar todo
+    }//GEN-LAST:event_btnLimpiarFiltrosActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnBuscar;
     private javax.swing.JButton btnEditar;
     private javax.swing.JButton btnEliminar;
+    private javax.swing.JButton btnExportarCsv;
+    private javax.swing.JButton btnLimpiarFiltros;
+    private javax.swing.JComboBox<String> cmbFiltroGenero;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable tablaPeliculas;
+    private javax.swing.JTextField txtDesde;
+    private javax.swing.JTextField txtHasta;
     // End of variables declaration//GEN-END:variables
 
     // ==== LÓGICA ====
-    
-    private void cargarTabla() {
-        //Se debe definir el modelo que deseamos que tenga la tabla
-        /*El DefaultTableModel me permite personalizar la tabla mediante código
-        como yo deseo o estime que es mejor*/
+    private void cargarTabla() { // Actualizacion
         try {
-            DefaultTableModel tabla = new DefaultTableModel() {
-                /*Se agregó este parentesis ya que agregaremos un parametro más el cual
-                evitará que alguna persona modifique las filas y las columnas de
-                forma accidental*/
-
-                @Override
-                public boolean isCellEditable(int row, int column) {
-                    return false;
-                }
-            };
-
-            /*Aquí estableceremos el nombre de las columnas*/
-            String titulos[] = {"id", "Titulo de la Película", "Director", "Año", "Duración","Genero"};
-            tabla.setColumnIdentifiers(titulos);//Con esto me olvido de preocuparme del ancho de las columnas
-
-            /*Acá viene la carga de datos desde la base de datos*/
             List<Cartelera> listaPeliculas = controller.onListar();
-
-            System.out.println("Número de películas encontradas: " + (listaPeliculas != null ? listaPeliculas.size() : "null"));
-
-            /*Ahora va a recorrer la lista y va a traer todos los elementos de la tabla
-        ... Ahora va a preguntar si nuestra lista es null o no, si no tiene nada cargado
-        no nos va a hacer el proceso y nos va a dejar todo vacío*/
-            if (listaPeliculas != null && !listaPeliculas.isEmpty()) {
-                for (Cartelera cartelera : listaPeliculas) {
-                    tabla.addRow(new Object[]{
-                        cartelera.getId(),
-                        cartelera.getTitulo(),
-                        cartelera.getDirector(),
-                        cartelera.getAnio(),
-                        cartelera.getDuracion(),
-                        cartelera.getGenero() != null ? cartelera.getGenero().toString() : "N/A"
-                    });
-                }
-            } else {
-                System.out.println("No se encontraron películas en la base de datos");
+            if (listaPeliculas == null) {
+                listaPeliculas = new ArrayList<>();
             }
-            
-            tablaPeliculas.setModel(tabla);
-
+            actualizarTabla(listaPeliculas);
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error al cargar listado: " + e.getMessage(),
                     "Listado", JOptionPane.ERROR_MESSAGE);
+
+            actualizarTabla(new ArrayList<>());
+        }
+    }
+
+    private void actualizarTabla(List<Cartelera> filas) { // Actualizacion
+        // Guarda cache para exportar o reusar datos
+        cacheListaActual = new ArrayList<>(filas);
+
+        DefaultTableModel model = new DefaultTableModel(
+                new Object[]{"id", "Título de la Película", "Director", "Año", "Duración", "Género"}, 0
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        for (Cartelera c : filas) {
+            model.addRow(new Object[]{
+                c.getId(),
+                c.getTitulo(),
+                c.getDirector(),
+                c.getAnio(),
+                c.getDuracion(),
+                c.getGenero() != null ? formatearGenero(c.getGenero()) : "N/A"
+            });
+        }
+
+        tablaPeliculas.setModel(model);
+        tablaPeliculas.setAutoCreateRowSorter(true); // permitir ordenar por columnas
+    }
+
+    private Integer parseEnteroNullable(String s) {
+        if (s == null) {
+            return null;
+        }
+        s = s.trim();
+        if (s.isEmpty() || "Desde (año)".equals(s) || "Hasta (año)".equals(s)) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(s);
+        } catch (NumberFormatException e) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Ingrese un año válido (número)",
+                    "Filtro", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return null;
+        }
+    }
+
+    private Cartelera.Genero generoDesdeCombo(JComboBox<String> combo) { // Actualizacion
+        String s = (String) combo.getSelectedItem();
+        if (s == null || "-".equals(s)) {
+            return null;
+        }
+        try {
+            return igu.util.FormUtils.mapGenero(s);
+        } catch (IllegalArgumentException ex) {
+            return null;
         }
     }
 }

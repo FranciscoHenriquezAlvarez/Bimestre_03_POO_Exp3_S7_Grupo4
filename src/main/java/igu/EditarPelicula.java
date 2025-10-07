@@ -1,11 +1,13 @@
 package igu;
 
+import igu.util.FormUtils;
 import java.awt.Image;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import logica.Cartelera;
 //import javax.swing.JOptionPane;
 import logica.controlador.CarteleraController;
+import logica.validacion.exceptions.ValidationException;
 
 public class EditarPelicula extends javax.swing.JFrame {
 
@@ -13,6 +15,11 @@ public class EditarPelicula extends javax.swing.JFrame {
     private final int id;/*Creo el atributo Id que es donde se va a referenciar la modificación*/
 
     public EditarPelicula(CarteleraController controller, int id) {/*Creo mis constructores*/
+        if (controller == null) {
+            throw new IllegalArgumentException("controller nulo");
+        }
+        if (id <= 0)
+            throw new IllegalArgumentException("id inválido");
         this.controller = controller;
         this.id = id;
         initComponents();/*el initComponents me carga la interfaz grafica*/
@@ -28,8 +35,9 @@ public class EditarPelicula extends javax.swing.JFrame {
         // 2. Escala la imagen para que encaje en el JLabel
         if (url != null) {
             ImageIcon originalIcon = new ImageIcon(url);
-            Image scaledImage = originalIcon.getImage()
-                    .getScaledInstance(jLabel7.getWidth(), jLabel7.getHeight(), Image.SCALE_SMOOTH);
+            
+            // Aquí se usa el tamaño
+            Image scaledImage = originalIcon.getImage().getScaledInstance(128, 128, Image.SCALE_SMOOTH);
 
             // 3. Establece la imagen en el JLabel
             jLabel7.setIcon(new ImageIcon(scaledImage));
@@ -184,11 +192,11 @@ public class EditarPelicula extends javax.swing.JFrame {
                             .addComponent(jLabel3)
                             .addComponent(txtAnio, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(txtDuracion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel4))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(cmbGenero, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel5))
                         .addGap(49, 49, 49)
@@ -277,13 +285,7 @@ public class EditarPelicula extends javax.swing.JFrame {
             txtDirector.setText(c.getDirector());
             txtAnio.setText(String.valueOf(c.getAnio()));
             txtDuracion.setText(String.valueOf(c.getDuracion()));
-            // set género
-            String g = c.getGenero() != null ? c.getGenero().name() : "-";
-            cmbGenero.setSelectedIndex(switch (g) {
-                case "COMEDIA" -> 1; case "DRAMA" -> 2; case "ACCION" -> 3;
-                case "TERROR" -> 4; case "CIENCIA_FICCION" -> 5; case "AVENTURA" -> 6;
-                default -> 0;
-            });
+            FormUtils.seleccionarGeneroEnCombo(cmbGenero, c.getGenero()); // 👈 reemplaza el switch de índices
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error al cargar: " + ex.getMessage(), "Editar", JOptionPane.ERROR_MESSAGE);
@@ -292,51 +294,33 @@ public class EditarPelicula extends javax.swing.JFrame {
     }
 
     private void onLimpiar() {
-        txtNombre.setText("");
-        txtDirector.setText("");
-        txtAnio.setText("");
-        txtDuracion.setText("");
+        FormUtils.limpiarCampos(txtNombre, txtDirector, txtAnio, txtDuracion);
         cmbGenero.setSelectedIndex(0);
     }
 
     private void onGuardar() {
         try {
-            if (txtNombre.getText().isBlank() || txtDirector.getText().isBlank()
-                || txtAnio.getText().isBlank() || txtDuracion.getText().isBlank()
-                || cmbGenero.getSelectedIndex() == 0) {
-                JOptionPane.showMessageDialog(this, "Todos los campos son obligatorios.", "Editar", JOptionPane.ERROR_MESSAGE);
+            FormUtils.PeliculaInput in = FormUtils.leerYValidarCampos(
+                    this, txtNombre, txtDirector, txtAnio, txtDuracion, cmbGenero
+            );
+            if (in == null) {
                 return;
             }
-            int anio = Integer.parseInt(txtAnio.getText().trim());
-            int dur = Integer.parseInt(txtDuracion.getText().trim());
-            String generoStr = (String) cmbGenero.getSelectedItem();
-            Cartelera.Genero genero = switch (generoStr) {
-                case "Comedia" -> Cartelera.Genero.COMEDIA;
-                case "Drama" -> Cartelera.Genero.DRAMA;
-                case "Acción" -> Cartelera.Genero.ACCION;
-                case "Terror" -> Cartelera.Genero.TERROR;
-                case "Ciencia Ficción" -> Cartelera.Genero.CIENCIA_FICCION;
-                case "Aventura" -> Cartelera.Genero.AVENTURA;
-                default -> throw new IllegalArgumentException("Género no válido");
-            };
 
             controller.onActualizarPelicula(
-                id,
-                txtNombre.getText().trim(),
-                txtDirector.getText().trim(),
-                anio,
-                dur,
-                genero
+                    id, in.titulo, in.director, in.anio, in.duracion, in.genero
             );
 
-            JOptionPane.showMessageDialog(this, "Película modificada correctamente.", "Editar", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Película modificada correctamente", "Editar", JOptionPane.INFORMATION_MESSAGE);
             new ListadoPeliculas(controller).setVisible(true);
             dispose();
-        } catch (NumberFormatException nf) {
-            JOptionPane.showMessageDialog(this, "Año y Duración deben ser números.", "Editar", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error al modificar: " + ex.getMessage(), "Editar", JOptionPane.ERROR_MESSAGE);
+
+        } catch (ValidationException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Validación", JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Validación", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al modificar: " + e.getMessage(), "Persistencia", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

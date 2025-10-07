@@ -28,5 +28,9 @@ public class ControladoraPersistencia {
     public List<Cartelera> listar() {
         return carteleraJpaController.findCarteleraEntities();
     }
+    
+    public List<Cartelera> listarFiltrado(Cartelera.Genero genero, Integer anioDesde, Integer anioHasta) { // Actualizacion
+        return carteleraJpaController.buscarPorFiltros(genero, anioDesde, anioHasta);
+    }
 
 }

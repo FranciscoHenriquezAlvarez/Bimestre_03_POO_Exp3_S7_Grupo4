@@ -8,4 +8,6 @@ public interface ICarteleraService {  // Actualización
     void eliminar(int id) throws Exception;
     Cartelera buscarPorId(int id) throws Exception;
     List<Cartelera> listar() throws Exception;
+    List<Cartelera> listarFiltrado(Cartelera.Genero genero, Integer anioDesde, Integer anioHasta) throws Exception; // Actualizacion
+
 }

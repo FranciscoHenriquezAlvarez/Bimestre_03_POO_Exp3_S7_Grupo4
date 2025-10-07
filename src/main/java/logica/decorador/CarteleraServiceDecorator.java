@@ -36,5 +36,12 @@ public abstract class CarteleraServiceDecorator implements ICarteleraService {  
     public List<Cartelera> listar() throws Exception {
         return wrappee.listar();
     }
+    
+    @Override // Actualizacion
+    public List<Cartelera> listarFiltrado(Cartelera.Genero genero,
+            Integer anioDesde,
+            Integer anioHasta) throws Exception {
+        return wrappee.listarFiltrado(genero, anioDesde, anioHasta);
+    }
 }
 

@@ -3,40 +3,66 @@ package logica.decorador;
 import java.util.List;
 import logica.Cartelera;
 import logica.ICarteleraService;
+import logica.validacion.CarteleraValidator;
+import logica.validacion.exceptions.ValidationException;
 
 public class ValidatingCarteleraService extends CarteleraServiceDecorator {  // Actualización
-    
-    public ValidatingCarteleraService(ICarteleraService wrappee) { super(wrappee); }
 
-    private void validarCampos(Cartelera c) {
-        if (c == null) throw new IllegalArgumentException("Cartelera nula");
-        if (c.getTitulo() == null || c.getTitulo().isBlank()) throw new IllegalArgumentException("Título obligatorio");
-        if (c.getDirector() == null || c.getDirector().isBlank()) throw new IllegalArgumentException("Director obligatorio");
-        if (c.getAnio() < 1895 || c.getAnio() > 2100) throw new IllegalArgumentException("Año fuera de rango");
-        if (c.getDuracion() <= 0) throw new IllegalArgumentException("Duración debe ser positiva");
-        if (c.getGenero() == null) throw new IllegalArgumentException("Género obligatorio");
+    public ValidatingCarteleraService(ICarteleraService wrappee) {
+        super(wrappee);
     }
 
-    @Override public void guardar(Cartelera c) throws Exception {
-        validarCampos(c);
+    @Override
+    public void guardar(Cartelera c) throws ValidationException, Exception {
+        CarteleraValidator.validar(c);
         super.guardar(c);
     }
 
-    @Override public void actualizar(Cartelera c) throws Exception {
-        if (c == null || c.getId() <= 0) throw new IllegalArgumentException("Id inválido");
-        validarCampos(c);
+    @Override
+    public void actualizar(Cartelera c) throws ValidationException, Exception {
+        if (c == null || c.getId() <= 0) {
+            throw new ValidationException("Id inválido");
+        }
+        CarteleraValidator.validar(c);
         super.actualizar(c);
     }
 
-    @Override public void eliminar(int id) throws Exception {
-        if (id <= 0) throw new IllegalArgumentException("Id inválido");
+    @Override
+    public void eliminar(int id) throws ValidationException, Exception {
+        if (id <= 0) {
+            throw new ValidationException("Id inválido");
+        }
         super.eliminar(id);
     }
 
-    @Override public Cartelera buscarPorId(int id) throws Exception {
-        if (id <= 0) throw new IllegalArgumentException("Id inválido");
+    @Override
+    public Cartelera buscarPorId(int id) throws ValidationException, Exception {
+        if (id <= 0) {
+            throw new ValidationException("Id inválido");
+        }
         return super.buscarPorId(id);
     }
 
-    @Override public List<Cartelera> listar() throws Exception { return super.listar(); }
+    @Override
+    public List<Cartelera> listar() throws Exception {
+        return super.listar();
+    }
+    
+    @Override
+    public List<Cartelera> listarFiltrado(Cartelera.Genero genero,
+            Integer anioDesde,
+            Integer anioHasta) throws Exception {
+        // Validaciones suaves: solo cuando vienen valores
+        if (anioDesde != null) {
+            CarteleraValidator.validarAnio(anioDesde);
+        }
+        if (anioHasta != null) {
+            CarteleraValidator.validarAnio(anioHasta);
+        }
+        if (anioDesde != null && anioHasta != null && anioDesde > anioHasta) {
+            throw new ValidationException("Rango de años inválido: 'desde' no puede ser mayor que 'hasta'.");
+        }
+        
+        return super.listarFiltrado(genero, anioDesde, anioHasta);
+    }
 }

@@ -1,4 +1,4 @@
-package logica;
+package logica.opcional;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -6,10 +6,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import persistencia.DatabaseConnection;
-import persistencia.InicializacionTabla;
+import logica.Cartelera;
+import logica.ICarteleraService;
+import persistencia.opcional.DatabaseConnection;
+import persistencia.opcional.InicializacionTabla;
 
-public class JdbcCarteleraService implements ICarteleraService {  // Actualización
+public class JdbcCarteleraService implements ICarteleraService {  // Implementación alternativa
 
     private static volatile boolean tablaLista = false;  // Actualización
 
@@ -147,4 +149,51 @@ public class JdbcCarteleraService implements ICarteleraService {  // Actualizaci
             throw new Exception("Error al listar carteleras vía JDBC. " + detalle, e);
         }
     }
+    
+    @Override
+    public List<Cartelera> listarFiltrado(Cartelera.Genero genero, Integer anioDesde, Integer anioHasta) throws Exception {
+        ensureSchemaOnce();
+        StringBuilder sql = new StringBuilder(
+                "SELECT id, titulo, director, anio, duracion, genero FROM cartelera WHERE 1=1"
+        );
+        List<Object> params = new ArrayList<>();
+        if (genero != null) {
+            sql.append(" AND genero = ?");
+            params.add(genero.name());
+        }
+        if (anioDesde != null) {
+            sql.append(" AND anio >= ?");
+            params.add(anioDesde);
+        }
+        if (anioHasta != null) {
+            sql.append(" AND anio <= ?");
+            params.add(anioHasta);
+        }
+        sql.append(" ORDER BY id");
+
+        try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                List<Cartelera> out = new ArrayList<>();
+                while (rs.next()) {
+                    Cartelera c = new Cartelera();
+                    c.setId(rs.getInt("id"));
+                    c.setTitulo(rs.getString("titulo"));
+                    c.setDirector(rs.getString("director"));
+                    c.setAnio(rs.getInt("anio"));
+                    c.setDuracion(rs.getInt("duracion"));
+                    String g = rs.getString("genero");
+                    c.setGenero(g != null ? Cartelera.Genero.valueOf(g) : null);
+                    out.add(c);
+                }
+                return out;
+            }
+        } catch (SQLException e) {
+            String detalle = "SQLState=" + e.getSQLState() + ", code=" + e.getErrorCode() + ", msg=" + e.getMessage();
+            throw new Exception("Error al listar filtrado vía JDBC. " + detalle, e);
+        }
+    }   
+    
 }

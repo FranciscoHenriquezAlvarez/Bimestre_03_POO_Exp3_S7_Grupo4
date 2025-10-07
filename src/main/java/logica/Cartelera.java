@@ -8,10 +8,17 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Enumerated;
 import javax.persistence.EnumType;
+import javax.persistence.Index;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "cartelera") // Actualizacion
+@Table(
+        name = "cartelera",
+        indexes = {
+            @Index(name = "idx_cartelera_genero_anio", columnList = "genero, anio"),
+            @Index(name = "idx_cartelera_anio", columnList = "anio")
+        }) // Actualizacion
+
 public class Cartelera implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

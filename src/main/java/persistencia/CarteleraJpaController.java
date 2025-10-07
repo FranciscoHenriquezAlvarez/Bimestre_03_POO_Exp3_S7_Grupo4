@@ -80,4 +80,31 @@ public class CarteleraJpaController implements Serializable {
             return new ArrayList<>();
         } finally { if (em.isOpen()) em.close(); }
     }
+    
+    public List<Cartelera> buscarPorFiltros(Cartelera.Genero genero, Integer anioDesde, Integer anioHasta) { // Actualizacion
+        EntityManager em = getEntityManager();
+        try {
+            var cb = em.getCriteriaBuilder();
+            var cq = cb.createQuery(Cartelera.class);
+            var root = cq.from(Cartelera.class);
+
+            List<javax.persistence.criteria.Predicate> ps = new java.util.ArrayList<>();
+            if (genero != null) {
+                ps.add(cb.equal(root.get("genero"), genero));
+            }
+            if (anioDesde != null) {
+                ps.add(cb.greaterThanOrEqualTo(root.get("anio"), anioDesde));
+            }
+            if (anioHasta != null) {
+                ps.add(cb.lessThanOrEqualTo(root.get("anio"), anioHasta));
+            }
+
+            cq.select(root)
+              .where(ps.toArray(new javax.persistence.criteria.Predicate[0]))
+              .orderBy(cb.asc(root.get("id")));
+            return em.createQuery(cq).getResultList();
+        } finally {
+            if (em.isOpen()) em.close();
+        }
+    }
 }

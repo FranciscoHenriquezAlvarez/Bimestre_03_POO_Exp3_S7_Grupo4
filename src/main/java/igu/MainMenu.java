@@ -1,45 +1,41 @@
 package igu;
 
-import java.awt.Color;
 import java.awt.Image;
 import javax.swing.ImageIcon;
 import logica.controlador.CarteleraController;
 
-
 public class MainMenu extends javax.swing.JFrame {
-    
+
     private final CarteleraController controller;
 
     /**
      * Creates new form MainMenu
      */
     public MainMenu(CarteleraController controller) {
+        if (controller == null) throw new IllegalArgumentException("controller nulo");
         this.controller = controller;
         initComponents();
-        jPanel1.setBackground(new java.awt.Color(120,120,121));
         
+        configurarMenuBar(); // Actualizacion
         
+        jPanel1.setBackground(new java.awt.Color(120, 120, 121));
+
         // --- COMIENZO DEL CÓDIGO AÑADIDO ---
-        
         // 1. Carga la imagen de 128x128 píxeles
-        // Asegúrate de que la imagen 'logoCineMagenta128x128.png' esté en tu proyecto
-        // (por ejemplo, en la carpeta src/main/resources o en la raíz del proyecto)
         var url = getClass().getResource("/logoCineMagenta128x128.png");
 
         // 2. Escala la imagen para que encaje en el JLabel
-        // Aquí se usa el tamaño del JLabel para el escalado
         if (url != null) {
             ImageIcon originalIcon = new ImageIcon(url);
-            Image scaledImage = originalIcon.getImage().getScaledInstance(
-                    jLabel2.getWidth(), jLabel2.getHeight(), Image.SCALE_SMOOTH);
-            ImageIcon scaledIcon = new ImageIcon(scaledImage);
+
+            // Aquí se define el tamaño
+            Image scaledImage = originalIcon.getImage().getScaledInstance(128, 128, Image.SCALE_SMOOTH);
 
             // 3. Establece la imagen en el JLabel
-            jLabel2.setIcon(scaledIcon);
+            jLabel2.setIcon(new ImageIcon(scaledImage));
         } else {
             System.err.println("⚠ No se encontró el recurso: /logoCineMagenta128x128.png");
         }
-
         // --- FIN DEL CÓDIGO AÑADIDO ---
     }
 
@@ -74,8 +70,6 @@ public class MainMenu extends javax.swing.JFrame {
             }
         });
 
-        jLabel2.setText("LogoCine");
-
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -90,7 +84,7 @@ public class MainMenu extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(198, 198, 198)
                         .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 190, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(212, Short.MAX_VALUE))
+                .addContainerGap(172, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -118,6 +112,38 @@ public class MainMenu extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    // === Barra de menús (JMenuBar) === // Actualizacion
+    private void configurarMenuBar() {
+        javax.swing.JMenuBar menuBar = new javax.swing.JMenuBar();
+
+        // --- Menú Películas ---
+        javax.swing.JMenu menuPeliculas = new javax.swing.JMenu("Películas");
+
+        javax.swing.JMenuItem miListado = new javax.swing.JMenuItem("Ver listado…");
+        miListado.setAccelerator(javax.swing.KeyStroke.getKeyStroke(
+                java.awt.event.KeyEvent.VK_L, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        miListado.addActionListener(e -> new ListadoPeliculas(controller).setVisible(true));
+
+        javax.swing.JMenuItem miAgregar = new javax.swing.JMenuItem("Agregar nueva…");
+        miAgregar.setAccelerator(javax.swing.KeyStroke.getKeyStroke(
+                java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        miAgregar.addActionListener(e -> new AgregarPelicula(controller).setVisible(true));
+
+        menuPeliculas.add(miListado);
+        menuPeliculas.add(miAgregar);
+
+        // --- Menú Ayuda ---
+        javax.swing.JMenu menuAyuda = new javax.swing.JMenu("Ayuda");
+        javax.swing.JMenuItem miAcerca = new javax.swing.JMenuItem("Acerca de CineMagenta");
+        miAcerca.addActionListener(e -> javax.swing.JOptionPane.showMessageDialog(this,
+                "CineMagenta v3.0 - S8\nActualizado por Francisco Henríquez\nDUOC UC - POO 2",
+                "Acerca de", javax.swing.JOptionPane.INFORMATION_MESSAGE));
+        menuAyuda.add(miAcerca);
+
+        menuBar.add(menuPeliculas);
+        menuBar.add(menuAyuda);
+        setJMenuBar(menuBar);
+    }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         new AgregarPelicula(controller).setVisible(true);
@@ -135,20 +161,16 @@ public class MainMenu extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     // End of variables declaration//GEN-END:variables
 
-    
-    
     // ⚠️ Método no utilizado en la versión final.
     // El controller se inyecta desde CineMagenta.main().
     //
     @Deprecated
     private CarteleraController crearControllerPorDefecto() {
-    persistencia.ControladoraPersistencia repo = new persistencia.ControladoraPersistencia();
-    logica.ICarteleraService jpa = new logica.JpaCarteleraService(repo);
-    logica.ICarteleraService decorado = new logica.decorador.LoggingCarteleraService(
-            new logica.decorador.ValidatingCarteleraService(jpa));
-    return new logica.controlador.CarteleraController(decorado);
-}
+        persistencia.ControladoraPersistencia repo = new persistencia.ControladoraPersistencia();
+        logica.ICarteleraService jpa = new logica.JpaCarteleraService(repo);
+        logica.ICarteleraService decorado = new logica.decorador.LoggingCarteleraService(
+                new logica.decorador.ValidatingCarteleraService(jpa));
+        return new logica.controlador.CarteleraController(decorado);
+    }
 
 }
-
-
